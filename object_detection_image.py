@@ -12,7 +12,8 @@ from object_detection.utils import visualization_utils as viz_utils
 from plot_object_detection_saved_model import IMAGE_PATHS, download_model
 
 # 경로세팅
-PATH_TO_LABELS = 'C:\\Users\\5-18\\Documents\\TensorFlow\\models-master\\research\\object_detection\\data\\mscoco_label_map.pbtxt'
+# PATH_TO_LABELS = 'C:\\Users\\5-18\\Documents\\TensorFlow\\models-master\\research\\object_detection\\data\\mscoco_label_map.pbtxt'
+PATH_TO_LABELS = 'C:\\Users\\gahye\\OneDrive\\Documents\\Tensorflow\\models\\research\\object_detection\\data\\mscoco_label_map.pbtxt'
 category_index = label_map_util.create_category_index_from_labelmap(PATH_TO_LABELS)
 
 # 모델 로드하는 함수.
