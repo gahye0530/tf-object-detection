@@ -1,7 +1,7 @@
 import tensorflow as tf
 import os
 import pathlib
-
+import time
 import numpy as np
 import zipfile
 
@@ -25,6 +25,13 @@ category_index = label_map_util.create_category_index_from_labelmap(PATH_TO_LABE
 
 # /20200711/efficientdet_d0_coco17_tpu-32.tar.gz
 
+# SSD MobileNet v2 320*320
+# /20200711/ssd_mobilenet_v2_320x320_coco17_tpu-8.tar.gz
+
+# 안됨
+# CenterNet MobileNetV2 FPN 512x512
+# /20210210/centernet_mobilenetv2fpn_512x512_coco17_od.tar.gz
+
 # Download and extract model
 def download_model(model_name, model_date):
     base_url = 'http://download.tensorflow.org/models/object_detection/tf2/'
@@ -35,7 +42,7 @@ def download_model(model_name, model_date):
     return str(model_dir)
 
 MODEL_DATE = '20200711'
-MODEL_NAME = 'centernet_hg104_1024x1024_coco17_tpu-32'
+MODEL_NAME = 'ssd_mobilenet_v2_320x320_coco17_tpu-8'
 PATH_TO_MODEL_DIR = download_model(MODEL_NAME, MODEL_DATE)
 
 def load_model(model_dir) :
@@ -78,16 +85,58 @@ def show_inference(detection_model, image_np) :
           category_index,
           use_normalized_coordinates=True,
           max_boxes_to_draw=200,
-          min_score_thresh=.30,
+          min_score_thresh=.30, # 확인이 30프로 이상인 것들만 
           agnostic_mode=False)
 
     cv2.imshow('result', image_np_with_detections)
 
+def save_inference(detection_model, image_np, video_writer) : 
+    # The input needs to be a tensor, convert it using `tf.convert_to_tensor`.
+    input_tensor = tf.convert_to_tensor(image_np)
+    # The model expects a batch of images, so add an axis with `tf.newaxis`.
+    input_tensor = input_tensor[tf.newaxis, ...]
+
+    # input_tensor = np.expand_dims(image_np, 0)
+    detections = detection_model(input_tensor)
+
+    # All outputs are batches tensors.
+    # Convert to numpy arrays, and take index [0] to remove the batch dimension.
+    # We're only interested in the first num_detections.
+    num_detections = int(detections.pop('num_detections'))
+    detections = {key: value[0, :num_detections].numpy()
+                   for key, value in detections.items()}
+    detections['num_detections'] = num_detections
+
+    # detection_classes should be ints.
+    detections['detection_classes'] = detections['detection_classes'].astype(np.int64)
+
+    image_np_with_detections = image_np.copy()
+
+    viz_utils.visualize_boxes_and_labels_on_image_array(
+          image_np_with_detections,
+          detections['detection_boxes'],
+          detections['detection_classes'],
+          detections['detection_scores'],
+          category_index,
+          use_normalized_coordinates=True,
+          max_boxes_to_draw=200,
+          min_score_thresh=.30, # 확인이 30프로 이상인 것들만 
+          agnostic_mode=False)
+
+    video_writer.write(image_np_with_detections)
+
+
+
 # 비디오를 실행하는 코두
-cap = cv2.VideoCapture('data/video.mp4')
+# cap = cv2.VideoCapture('data/video.mp4')
+cap = cv2.VideoCapture(0)
 if cap.isOpened() == False :
     print('비디오 실행 에러')
 else :
+    frame_width = int(cap.get(3))
+    frame_height = int(cap.get(4))
+    out = cv2.VideoWriter('data/output2.avi', cv2.VideoWriter_fourcc('M','J','P','G'),20,(frame_width, frame_height))
+
     # 비디오 캡처에서 이미지를 1장씩 가져온다.
     # 이 1장의 이미지를 
     while cap.isOpened() :
@@ -95,9 +144,25 @@ else :
         if ret == True :
             # frame이 이미지에 대한 넘파이 어레이 이므로
             # 이 frame 을 오브젝트 디텍션 한다. 
+
+            # 학습용으로 동영상으로 저장하는 코드를 수정하세요
+            start_time = time.time()
+            
+            # 동영상을 실시간으로 화면에서 디텍팅하는것
+            # show_inference(detection_mopdel,frame)
+
+
+            
+            
+            # 화면표시 (동영상을 실시간으로 화면에서 디텍팅하는것)
             show_inference(detection_model, frame)
+            # 화면저장
+            # save_inference(detection_model, frame, out)
+            end_time = time.time()
+            print('연산에 걸린 시간', str(end_time-start_time))
             if cv2.waitKey(27) & 0xFF == 27 : break
         else :
             break
     cap.release() # 비디오캡처닫기
+    out.release()
     cv2.destroyAllWindows()
