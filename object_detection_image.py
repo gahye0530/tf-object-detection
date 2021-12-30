@@ -6,10 +6,10 @@ import zipfile
 import matplotlib.pyplot as plt
 from PIL import Image
 import cv2
-from object_detection.utils import ops as utils_ops
+# from object_detection.utils import ops as utils_ops
 from object_detection.utils import label_map_util
 from object_detection.utils import visualization_utils as viz_utils
-from plot_object_detection_saved_model import IMAGE_PATHS, download_model
+# from plot_object_detection_saved_model import IMAGE_PATHS, download_model
 
 # 경로세팅
 # PATH_TO_LABELS = 'C:\\Users\\5-18\\Documents\\TensorFlow\\models-master\\research\\object_detection\\data\\mscoco_label_map.pbtxt'

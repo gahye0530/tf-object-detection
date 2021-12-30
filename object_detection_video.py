@@ -157,7 +157,7 @@ else :
             # 화면표시 (동영상을 실시간으로 화면에서 디텍팅하는것)
             show_inference(detection_model, frame)
             # 화면저장
-            # save_inference(detection_model, frame, out)
+            save_inference(detection_model, frame, out)
             end_time = time.time()
             print('연산에 걸린 시간', str(end_time-start_time))
             if cv2.waitKey(27) & 0xFF == 27 : break
